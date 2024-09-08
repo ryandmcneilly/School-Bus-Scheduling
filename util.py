@@ -58,7 +58,7 @@ def read_file(test_number):
 
    # Time from School i to start of trip j
    D = {(i, j):
-        distance(SCHOOL_POSITIONS[i], START_POSITIONS[j]) 
+        0 if i == 0 or j == len(N) + 1 else distance(SCHOOL_POSITIONS[i], START_POSITIONS[j]) 
         for i in N_0 for j in N_FINAL
    }
 
@@ -66,7 +66,7 @@ def read_file(test_number):
    DELTA_MINUS = {j: {i for i in N if WINDOW[j][0] <= WINDOW[i][1] + P[j] + D[i, j]} | {0} for j in N }
    DELTA_PLUS = {j: {i for i in N if WINDOW[i][0] + D[i, j] + P[j] <= WINDOW[j][1]} | {len(N) + 1} for j in N }
    
-   return N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS
+   return N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW
 
 # Testing file 1.
 print(read_file(1))
