@@ -1,0 +1,80 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{nyt/global//global/global}
+  \entry{KIM2012577}{article}{}
+    \name{author}{3}{}{%
+      {{hash=KBI}{%
+         family={Kim},
+         familyi={K\bibinitperiod},
+         given={Byung-In},
+         giveni={B\bibinithyphendelim I\bibinitperiod},
+      }}%
+      {{hash=KS}{%
+         family={Kim},
+         familyi={K\bibinitperiod},
+         given={Seongbae},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=PJ}{%
+         family={Park},
+         familyi={P\bibinitperiod},
+         given={Junhyuk},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \keyw{Heuristics, School bus routing problem, Bus scheduling problem,
+  Vehicle routing problem, Assignment problem}
+    \strng{namehash}{KBIKSPJ1}
+    \strng{fullhash}{KBIKSPJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2012}
+    \field{labeldatesource}{}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{abstract}{%
+    This paper introduces a school bus scheduling problem wherein trips for
+  each school are given. A trip consists of a sequence of bus stops and their
+  designated school. Each school has its fixed time window within which trips
+  should be completed. A school bus can serve multiple trips for multiple
+  schools. The school bus scheduling problem seeks to optimize bus schedules to
+  serve all the given trips considering the school time windows. We first model
+  the problem as a vehicle routing problem with time windows (VRPTW) by
+  treating a trip as a virtual stop. Two assignment problem based exact
+  approaches are then proposed for special cases and a heuristic algorithm is
+  proposed for more general cases. Benchmark problems and computational
+  experiments are presented. Computational experiments show the effectiveness
+  of the proposed approaches.%
+    }
+    \verb{doi}
+    \verb https://doi.org/10.1016/j.ejor.2011.11.035
+    \endverb
+    \field{issn}{0377-2217}
+    \field{number}{2}
+    \field{pages}{577\bibrangedash 585}
+    \field{title}{A school bus scheduling problem}
+    \verb{url}
+    \verb https://www.sciencedirect.com/science/article/pii/S0377221711010447
+    \endverb
+    \field{volume}{218}
+    \field{journaltitle}{European Journal of Operational Research}
+    \field{year}{2012}
+  \endentry
+\enddatalist
+\endinput
