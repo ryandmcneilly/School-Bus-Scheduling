@@ -1,5 +1,5 @@
 import gurobipy as gp
-from util import *
+from util.util import *
 
 FILE_NUMBER = 5
 
@@ -54,7 +54,6 @@ StartAtDepot = {k:
     for k in K
 }
 
-# Michael notes
 # 2 continuous variables for each node which are fractional which add up to the 
 # Want variable with Z[i, j] which bounds with earliest starting time and latest starting timez
 
