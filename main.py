@@ -2,7 +2,6 @@ import gurobipy as gp
 from util.util import *
 
 FILE_NUMBER = 5
-IN, OUT = 0, 1
 EPS = 1e-10
 
 # Sets & Data
@@ -12,11 +11,9 @@ M_0 = 1 << 20 - 1
 M = 1 << 32 - 1
 
 m = gp.Model("Heterogenous Bus Problem")
-
 # Variables
-X = {(i, j, k): m.addVar(vtype=gp.GRB.BINARY) for i in N_0 for j in N_FINAL for k in K}
-W = {(i, k): m.addVar() for i in N_0 for k in K}
-Z = {(i, j, d): m.addVar() for i in N_0 for j in N_FINAL for d in (IN, OUT)}
+X = {(i, j, k): m.addVar(vtype=gp.GRB.BINARY) for i in N_0 for j in N_FINAL for k in K}     # Bool to do trip
+W = {(i, k): m.addVar() for i in N_0 for k in K}                                            # Service start time for bus k
 
 # Objective
 m.setObjective(gp.quicksum(D[i, j] * X[i, j, k] for i, j, k in X) + M_0 * gp.quicksum(X[0, j, k] for k in K for j in N_FINAL), gp.GRB.MINIMIZE)
@@ -32,15 +29,7 @@ FlowBalance = {(j, k):
     for i in DELTA_PLUS[j])) for j in N for k in K
 }
 
-WeightMaxFlow = {(i, j, k): 
-    m.addConstr(Z[i, j, IN] + Z[i, j, OUT] <= (1 + EPS) * X[i, j, k]) 
-    for i in N for j in N for k in K
-}
 
-WeightMinFlow = {(i, j, k): 
-    m.addConstr(Z[i, j, IN] + Z[i, j, OUT] <= (1 - EPS) * X[i, j, k]) 
-    for i in N for j in N for k in K
-}
 
 EnoughTime = {(i, j, k): 
     m.addConstr(W[i, k] + P[i] + D[i, j] - W[j, k] <= (1 - X[i, j, k]) * M )
@@ -48,12 +37,12 @@ EnoughTime = {(i, j, k):
 }
 
 InTimeWindowLess = {(j, k): 
-    m.addConstr((WINDOW[j][0] - P[j]) * gp.quicksum(X[i, j, k] for i in DELTA_MINUS[j]) <= W[j, k])
+    m.addConstr((WINDOW[j][SCHOOL_START_TIME] - P[j]) * gp.quicksum(X[i, j, k] for i in DELTA_MINUS[j]) <= W[j, k])
     for j in N for k in K
 }
 
 InTimeWindowMore = {(j, k): 
-    m.addConstr((WINDOW[j][1] - P[j]) * gp.quicksum(X[i, j, k] for i in DELTA_MINUS[j]) <= W[j, k])
+    m.addConstr((WINDOW[j][SCHOOL_END_TIME] - P[j]) * gp.quicksum(X[i, j, k] for i in DELTA_MINUS[j]) <= W[j, k])
     for j in N for k in K
 }
 
@@ -80,6 +69,8 @@ earliest arrival time = 0.3 (Z[i, j, 0]) times latest arrival time (if its gonna
 """
 
 m.optimize()
+
+# make k bus type count each bus type
 
 # Print out results.
 for (i, j, k) in X:
