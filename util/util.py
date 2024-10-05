@@ -2,6 +2,10 @@ import numpy as np
 from enum import IntEnum
 
 BUS_SPEED = 60 # km/h
+SCHOOL_START_TIME = 0
+SCHOOL_END_TIME = 1
+IN, OUT = 0, 1
+
 
 class Test(IntEnum):
    ID = 0
