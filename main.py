@@ -2,21 +2,21 @@ import gurobipy as gp
 from util.util import *
 
 FILE_NUMBER = 5
-EPS = 1e-10
+EPS = 1e-3
 
 # Sets & Data
-N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW = read_file(FILE_NUMBER)
+N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS = read_file(FILE_NUMBER)
 
-M_0 = 1 << 20 - 1
-M = 1 << 32 - 1
+
 
 m = gp.Model("Heterogenous Bus Problem")
+
 # Variables
 X = {(i, j, k): m.addVar(vtype=gp.GRB.BINARY) for i in N_0 for j in N_FINAL for k in K}     # Bool to do trip
-W = {(i, k): m.addVar() for i in N_0 for k in K}                                            # Service start time for bus k
+Z = {(i, j, mode): m.addVar() for i in N_0 for j in N_FINAL for mode in (EARLY, LATE)}      # Bounding variable times
 
 # Objective
-m.setObjective(gp.quicksum(D[i, j] * X[i, j, k] for i, j, k in X) + M_0 * gp.quicksum(X[0, j, k] for k in K for j in N_FINAL), gp.GRB.MINIMIZE)
+m.setObjective(gp.quicksum(((P[i] if i > 0 else 0) + D[i, j]) * X[i, j, k] for i in N_0 for j in N for k in K) + M_0 * gp.quicksum(X[0, j, k] for k in K for j in N_FINAL), gp.GRB.MINIMIZE)
 
 # Constraints
 TripDoneWithValidBus = {j: 
@@ -29,50 +29,42 @@ FlowBalance = {(j, k):
     for i in DELTA_PLUS[j])) for j in N for k in K
 }
 
-
-
-EnoughTime = {(i, j, k): 
-    m.addConstr(W[i, k] + P[i] + D[i, j] - W[j, k] <= (1 - X[i, j, k]) * M )
-    for i in N for j in N for k in K
+TimeWindowBound = {(i): m.addConstr(
+    gp.quicksum(
+        Z[i, j, EARLY] * WINDOW[i][SCHOOL_START_TIME] + 
+        Z[i, j, LATE] * (WINDOW[j][SCHOOL_END_TIME] - P[i] - D[i, j]) for j in N
+    ) >= gp.quicksum(
+        Z[j, i, EARLY] * (WINDOW[j][SCHOOL_START_TIME] + P[j] + D[j, i]) + 
+        Z[j, i, LATE] * WINDOW[i][SCHOOL_END_TIME]  for j in N)) 
+    for i in N
 }
 
-InTimeWindowLess = {(j, k): 
-    m.addConstr((WINDOW[j][SCHOOL_START_TIME] - P[j]) * gp.quicksum(X[i, j, k] for i in DELTA_MINUS[j]) <= W[j, k])
-    for j in N for k in K
+FractionalBoundSumLower = {(i, j): 
+    m.addConstr(Z[i, j, EARLY] + Z[i, j, LATE] >= (1 - EPS) * gp.quicksum(X[i, j, k] for k in K)) 
+    for i in N for j in N
 }
 
-InTimeWindowMore = {(j, k): 
-    m.addConstr((WINDOW[j][SCHOOL_END_TIME] - P[j]) * gp.quicksum(X[i, j, k] for i in DELTA_MINUS[j]) <= W[j, k])
-    for j in N for k in K
+FractionalBoundSumUpper = {(i, j): 
+    m.addConstr(Z[i, j, EARLY] + Z[i, j, LATE] <= (1 + EPS) * gp.quicksum(X[i, j, k] for k in K)) 
+    for i in N for j in N
 }
 
 StartAtDepot = {k: 
-    m.addConstr(gp.quicksum(X[0, j, k] for j in N) == 1) 
+    m.addConstr(gp.quicksum(X[0, j, k] for j in DELTA_PLUS[0]) == 1) 
     for k in K
 }
 
-StartAtDepot = {k: 
-    m.addConstr(gp.quicksum(X[i, len(N) + 1, k] for i in N) == 1) 
+EndAtDepot = {k: 
+    m.addConstr(gp.quicksum(X[i, len(N) + 1, k] for i in DELTA_MINUS[len(N) + 1]) == 1) 
     for k in K
 }
-
-# 2 continuous variables for each node which are fractional which add up to the 
-# Want variable with Z[i, j] which bounds with earliest starting time and latest starting timez
-# its to bound the earliest arrival time and the latest departure time.
-
-"""
-latest departure time = 0.7 (Z[i, j, 1]) times earliest departure time (if its gonna go to that trip X[i, j, k]) 
-+ how long it takes to go to that trip
-
-earliest arrival time = 0.3 (Z[i, j, 0]) times latest arrival time (if its gonna go to that X[j, j*, k]) 
-+ how long it takes to do that trip
-"""
 
 m.optimize()
 
-# make k bus type count each bus type
 
 # Print out results.
-for (i, j, k) in X:
-    if X[i, j, k].x > 0:
-        print(f"Going from stop {i} -> {j} with bus {k} at time {W[i, k].x}")
+if m.Status != gp.GRB.INFEASIBLE:
+    num_busses = len([1 for (i, j, k) in X if X[i, j, k].x > 0])
+    distancee = sum([(P[i] if i > 0 else 0) + D[i, j] for (i, j, k) in X if X[i, j, k].x > 0])
+    print("Number of busses: ", num_busses)
+    print("Distance: ", distancee)
