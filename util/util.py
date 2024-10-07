@@ -4,7 +4,12 @@ from enum import IntEnum
 BUS_SPEED = 60 # km/h
 SCHOOL_START_TIME = 0
 SCHOOL_END_TIME = 1
-IN, OUT = 0, 1
+EARLY, LATE = 0, 1
+
+M_0 = 1 << 20 - 1
+M = 1 << 32 - 1
+
+
 
 
 class Test(IntEnum):
@@ -31,7 +36,7 @@ def distance(pos1, pos2):
 
 # Read csv
 def read_file(test_number):
-   test_filename = f"./datasets/sorted/sorted_hetero_test_file{test_number}.txt"
+   test_filename = f"./datasets/original/hetero_test_file{test_number}.txt"
    vehicle_filename = f"./datasets/original/hetero_vehicle_file{test_number}.txt"
 
    test_file = np.loadtxt(test_filename, skiprows=1, dtype=np.int32)
@@ -52,7 +57,12 @@ def read_file(test_number):
 
    # Time window constraints
    P = {row[Test.ID]: row[Test.SERVICE_DURATION] for row in test_file}
+   P[0] = 0
+   P[len(N) + 1] = 0
+   
    WINDOW = {row[Test.ID]: (row[Test.SCHOOL_TW_ST], row[Test.SCHOOL_TW_END]) for row in test_file}
+   WINDOW[0] = -M, M, 
+   WINDOW[len(N) + 1] = -M, M
 
    SCHOOL_POSITIONS = {row[Test.ID]: (row[Test.SCHOOL_X], row[Test.SCHOOL_Y]) for row in test_file}
    SCHOOL_POSITIONS[0] = (0, 0) # Depot set to origin coordinate for ease.
@@ -67,7 +77,7 @@ def read_file(test_number):
    }
 
    # trip j can be preceded by trip i if 
-   DELTA_MINUS = {j: {i for i in N if WINDOW[j][0] <= WINDOW[i][1] + P[j] + D[i, j]} | {0} for j in N }
-   DELTA_PLUS = {j: {i for i in N if WINDOW[i][0] + D[i, j] + P[j] <= WINDOW[j][1]} | {len(N) + 1} for j in N }
-   
-   return N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW
+   DELTA_MINUS = {j: {i for i in N if WINDOW[i][SCHOOL_START_TIME] + D[i, j] + P[i] <= WINDOW[j][SCHOOL_END_TIME]} | {0} for j in N_FINAL }
+   DELTA_PLUS = {i: {j for j in N if WINDOW[i][SCHOOL_START_TIME] + D[i, j] + P[i] <= WINDOW[j][SCHOOL_END_TIME]} | {len(N) + 1} for i in N }
+   DELTA_PLUS[0] = N_FINAL
+   return N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS
