@@ -34,8 +34,8 @@ def distance(pos1, pos2):
 
 # Read csv
 def read_file(test_number):
-   test_filename = f"./datasets/original/hetero_test_file{test_number}.txt"
-   vehicle_filename = f"./datasets/original/hetero_vehicle_file{test_number}.txt"
+   test_filename = f"./datasets/hetero_test_file{test_number}.txt"
+   vehicle_filename = f"./datasets/hetero_vehicle_file{test_number}.txt"
 
    test_file = np.loadtxt(test_filename, skiprows=1, dtype=np.int32)
    vehicle_file = np.loadtxt(vehicle_filename, skiprows=1, dtype=np.int32)
@@ -45,6 +45,8 @@ def read_file(test_number):
    N_0 = N | {0}
    N_FINAL = N | {len(N) + 1}
    N_ALL = {0} | N | {len(N) + 1}
+
+   # Get Different bus types (by capacity)
 
    K = set(vehicle_file[:, Vehicle.VEH_ID])
 
