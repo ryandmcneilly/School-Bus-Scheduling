@@ -1,8 +1,8 @@
 from pyvis.network import Network
-from reportImplementation import *  # Assuming this imports necessary data and variables
+from main import *  # Assuming this imports necessary data and variables
 
 # Initialize network object
-net = Network()
+net = Network(directed=True)
 
 # Create nodes for the network based on the 'Z' and 'X' variables
 for i in N:
