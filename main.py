@@ -1,7 +1,7 @@
 import gurobipy as gp
 from util.util import *
 
-FILE_NUMBER = 5
+FILE_NUMBER = 10
 EPS = 1e-3
 
 # Sets & Data
@@ -12,7 +12,7 @@ N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSI
 m = gp.Model("Heterogenous Bus Problem")
 
 # Variables
-X = {(i, j, k): m.addVar(vtype=gp.GRB.BINARY) for i in N_0 for j in N_FINAL for k in K}     # Bool to do trip
+X = {(i, j, k): m.addVar() for i in N_0 for j in N_FINAL for k in K}     # Bool to do trip
 Z = {(i, j, mode): m.addVar() for i in N_0 for j in N_FINAL for mode in (EARLY, LATE)}      # Bounding variable times
 
 # Objective
@@ -34,20 +34,16 @@ TimeWindowBound = {(i): m.addConstr(
         Z[i, j, EARLY] * WINDOW[i][SCHOOL_START_TIME] + 
         Z[i, j, LATE] * (WINDOW[j][SCHOOL_END_TIME] - P[i] - D[i, j]) for j in N
     ) >= gp.quicksum(
-        Z[j, i, EARLY] * (WINDOW[j][SCHOOL_START_TIME] + P[j] + D[j, i]) + 
-        Z[j, i, LATE] * WINDOW[i][SCHOOL_END_TIME]  for j in N)) 
+        Z[j, i, EARLY] * (WINDOW[j][SCHOOL_START_TIME]) + 
+        Z[j, i, LATE] * WINDOW[i][SCHOOL_END_TIME] - P[j] + D[j, i] for j in N))
     for i in N
 }
 
-FractionalBoundSumLower = {(i, j): 
-    m.addConstr(Z[i, j, EARLY] + Z[i, j, LATE] >= (1 - EPS) * gp.quicksum(X[i, j, k] for k in K)) 
+FractionalBoundSum = {(i, j): 
+    m.addConstr(Z[i, j, EARLY] + Z[i, j, LATE] == gp.quicksum(X[i, j, k] for k in K)) 
     for i in N for j in N
 }
 
-FractionalBoundSumUpper = {(i, j): 
-    m.addConstr(Z[i, j, EARLY] + Z[i, j, LATE] <= (1 + EPS) * gp.quicksum(X[i, j, k] for k in K)) 
-    for i in N for j in N
-}
 
 StartAtDepot = {k: 
     m.addConstr(gp.quicksum(X[0, j, k] for j in DELTA_PLUS[0]) == 1) 
@@ -64,7 +60,38 @@ m.optimize()
 
 # Print out results.
 if m.Status != gp.GRB.INFEASIBLE:
-    num_busses = len([1 for (i, j, k) in X if X[i, j, k].x > 0])
+    num_busses = len([1 for k in K if len([1 for j in N_FINAL if X[0, j, k].x > 0])> 0 ]  )
     distancee = sum([(P[i] if i > 0 else 0) + D[i, j] for (i, j, k) in X if X[i, j, k].x > 0])
     print("Number of busses: ", num_busses)
     print("Distance: ", distancee)
+else:
+    m.computeIIS()
+    m.write("iismodel.ilp")
+    
+    print("-----------------------------------")
+    print("TripDoneWithValidBus: ")
+    for j in TripDoneWithValidBus:
+        if TripDoneWithValidBus[j].IISConstr:
+            print(f"TripDoneWithValidBus[{j}] is{' NOT' if not TripDoneWithValidBus[j].IISConstr else ''} in the IIS")
+    
+    print("-----------------------------------")
+    print("Flow Balance: ")
+    for j, k in FlowBalance:
+        if FlowBalance[j, k].IISConstr:
+            print(f"FlowBalance[{j, k}] is{' NOT' if not FlowBalance[j, k].IISConstr else ''} in the IIS")
+
+    print('----------------------------------')
+    print("TimeWindowBound: ")
+    for i in TimeWindowBound:
+        if TimeWindowBound[i].IISConstr:
+            print(f"TimeWindowBound[{i}] is{' NOT' if not TimeWindowBound[i].IISConstr else ''} in the IIS")
+
+    print('----------------------------------')
+    print("FractionalBoundSum: ")
+    for i, j in FractionalBoundSum:
+        if FractionalBoundSum[i, j].IISConstr:
+            # print(f"FractionalBoundSum[{i, j}] is in the IIS")
+            pass
+
+    print('----------------------------------')
+    
