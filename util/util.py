@@ -10,8 +10,6 @@ M_0 = 1 << 20 - 1
 M = 1 << 32 - 1
 
 
-
-
 class Test(IntEnum):
    ID = 0
    START_X = 1

@@ -16,7 +16,7 @@ X = {(i, j, k): m.addVar() for i in N_0 for j in N_FINAL for k in K}     # Bool 
 Z = {(i, j, mode): m.addVar() for i in N_0 for j in N_FINAL for mode in (EARLY, LATE)}      # Bounding variable times
 
 # Objective
-m.setObjective(gp.quicksum(((P[i] if i > 0 else 0) + D[i, j]) * X[i, j, k] for i in N_0 for j in N for k in K) + M_0 * gp.quicksum(X[0, j, k] for k in K for j in N_FINAL), gp.GRB.MINIMIZE)
+m.setObjective(gp.quicksum((P[i] + D[i, j]) * X[i, j, k] for i in N_0 for j in N for k in K) + M_0 * gp.quicksum(X[0, j, k] for k in K for j in N_FINAL), gp.GRB.MINIMIZE)
 
 # Constraints
 TripDoneWithValidBus = {j: 
@@ -34,8 +34,8 @@ TimeWindowBound = {(i): m.addConstr(
         Z[i, j, EARLY] * WINDOW[i][SCHOOL_START_TIME] + 
         Z[i, j, LATE] * (WINDOW[j][SCHOOL_END_TIME] - P[i] - D[i, j]) for j in N
     ) >= gp.quicksum(
-        Z[j, i, EARLY] * (WINDOW[j][SCHOOL_START_TIME]) + 
-        Z[j, i, LATE] * WINDOW[i][SCHOOL_END_TIME] - P[j] + D[j, i] for j in N))
+        Z[j, i, EARLY] * WINDOW[j][SCHOOL_START_TIME] + 
+        Z[j, i, LATE] * (WINDOW[i][SCHOOL_END_TIME] - P[j] - D[j, i]) for j in N))
     for i in N
 }
 
@@ -58,12 +58,13 @@ EndAtDepot = {k:
 m.optimize()
 
 
+
 # Print out results.
 if m.Status != gp.GRB.INFEASIBLE:
-    num_busses = len([1 for k in K if len([1 for j in N_FINAL if X[0, j, k].x > 0])> 0 ]  )
-    distancee = sum([(P[i] if i > 0 else 0) + D[i, j] for (i, j, k) in X if X[i, j, k].x > 0])
+    num_busses = len([1 for k in K if len([1 for j in N_FINAL if X[0, j, k].x > 0]) > 0 ]  )
+    # distancee = sum([(P[i] if i > 0 else 0) + D[i, j] for (i, j, k) in X if X[i, j, k].x > 0])
     print("Number of busses: ", num_busses)
-    print("Distance: ", distancee)
+    # print("Distance: ", distancee)
 else:
     m.computeIIS()
     m.write("iismodel.ilp")
