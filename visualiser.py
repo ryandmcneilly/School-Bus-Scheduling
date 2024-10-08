@@ -19,11 +19,11 @@ for i in N:
                  label=f"School {i}", #color=color)
     )
 
-
 for i in N:
     for j in N:
         for k in N:
             if X[i, j, k].x > 0:
-                net.add_edge(str(i), str(j))
+                net.add_edge(str(i), str(j), title=f"Bus {k}")
+
 # Display the network
 net.show('network.html')

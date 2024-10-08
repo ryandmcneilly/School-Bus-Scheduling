@@ -5,8 +5,8 @@ BUS_SPEED = 60 # km/h
 SCHOOL_START_TIME = 0
 SCHOOL_END_TIME = 1
 EARLY, LATE = 0, 1
-
-M_0 = 1 << 20 - 1
+DEPOT_POSITION = (50, 50)
+M_0 = 0
 M = 1 << 32 - 1
 
 
@@ -65,14 +65,15 @@ def read_file(test_number):
    WINDOW[len(N) + 1] = -M, M
 
    SCHOOL_POSITIONS = {row[Test.ID]: (row[Test.SCHOOL_X], row[Test.SCHOOL_Y]) for row in test_file}
-   SCHOOL_POSITIONS[0] = (0, 0) # Depot set to origin coordinate for ease.
+   SCHOOL_POSITIONS[0] = DEPOT_POSITION # Depot set to origin coordinate for ease.
+   SCHOOL_POSITIONS[len(N) + 1] = DEPOT_POSITION
 
    START_POSITIONS = {row[Test.ID]: (row[Test.START_X], row[Test.START_Y]) for row in test_file}
    START_POSITIONS[len(N) + 1] = (0, 0) # Depot set to origin coordinate for ease.
 
    # Time from School i to start of trip j
    D = {(i, j):
-        0 if (i == 0 or i == len(N) + 1 or j == 0 or j == len(N) + 1) else distance(SCHOOL_POSITIONS[i], START_POSITIONS[j])
+        distance(SCHOOL_POSITIONS[i], START_POSITIONS[j])
         for i in N_0 for j in N_FINAL
    }
 

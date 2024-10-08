@@ -1,7 +1,7 @@
 import gurobipy as gp
 from util.util import *
 
-FILE_NUMBER = 10
+FILE_NUMBER = 5
 EPS = 1e-10
 
 # Sets & Data
