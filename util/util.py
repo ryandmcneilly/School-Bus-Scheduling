@@ -51,7 +51,7 @@ def read_file(test_number):
    K = set(vehicle_file[:, Vehicle.VEH_ID])
 
    # Stores if bus k has enough capacity for stop i
-   E = {(i, k): test_file[i - 1][Test.STUDENT_NUM] < vehicle_file[k - 1][Vehicle.CAPACITY] 
+   E = {(i, k): test_file[i - 1][Test.STUDENT_NUM] <= vehicle_file[k - 1][Vehicle.CAPACITY] 
         for i in N for k in K
    }
 
@@ -72,7 +72,7 @@ def read_file(test_number):
 
    # Time from School i to start of trip j
    D = {(i, j):
-        0 if (i == 0 or j == len(N) + 1) else distance(SCHOOL_POSITIONS[i], START_POSITIONS[j]) 
+        0 if (i == 0 or i == len(N) + 1 or j == 0 or j == len(N) + 1) else distance(SCHOOL_POSITIONS[i], START_POSITIONS[j]) 
         for i in N_0 for j in N_FINAL
    }
 
