@@ -62,9 +62,10 @@ m.optimize()
 
 # Print out results.
 if m.Status != gp.GRB.INFEASIBLE:
-    for (i, j, k) in X:
-        if X[i, j, k].x > 0:
-            print(f"Going from stop {i if i != 0 or i != max(X)[0] else 'depot'} -> {j if j != 0 or j != max(X)[0] + 1 else 'depot'} with bus {k} at time {W[i, k].x}")
+    num_busses = len([1 for k in K if len([1 for j in N_FINAL if X[0, j, k].x > 0])> 0 ]  )
+    distancee = sum([P[i] + D[i, j] for (i, j, k) in X if X[i, j, k].x > 0])
+    print("Number of busses: ", num_busses)
+    print("Distance: ", distancee)
 else:
     m.computeIIS()
     m.write("iismodel.ilp")
