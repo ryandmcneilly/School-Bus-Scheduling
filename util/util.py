@@ -32,7 +32,7 @@ class Vehicle(IntEnum):
 
 # Euclidean distance between two virtual stops
 def distance(pos1, pos2):
-   return int(np.linalg.norm(np.array((pos1[0] - pos2[0], pos1[1] - pos2[1]))))
+   return int(np.linalg.norm(np.array((pos1[0] - pos2[0], pos1[1] - pos2[1])))) / BUS_SPEED
 
 # Read csv
 def read_file(test_number):
@@ -72,7 +72,7 @@ def read_file(test_number):
 
    # Time from School i to start of trip j
    D = {(i, j):
-        0 if (i == 0 or i == len(N) + 1 or j == 0 or j == len(N) + 1) else distance(SCHOOL_POSITIONS[i], START_POSITIONS[j]) 
+        0 if (i == 0 or i == len(N) + 1 or j == 0 or j == len(N) + 1) else distance(SCHOOL_POSITIONS[i], START_POSITIONS[j])
         for i in N_0 for j in N_FINAL
    }
 
