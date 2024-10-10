@@ -1,12 +1,13 @@
 import gurobipy as gp
 from util.util import *
-
+import time
 EPS = 1e-3
 
 # Sets & Data
 N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS = read_file(FILE_NUMBER)
 
-
+# Lets see how long this takes!
+startTime = time.time()
 
 m = gp.Model("Heterogenous Bus Problem")
 
@@ -19,6 +20,7 @@ m.setObjective(gp.quicksum((P[i] + D[i, j]) * X[i, j, k] for i in N_0 for j in N
 
 # Constraints
 ForceZero = m.addConstr(gp.quicksum(X[i,j,k] for (i,j,k) in X if (j,k) in E and not E[j,k]) ==0)
+
 TripDoneWithValidBus = {j: 
     m.addConstr(gp.quicksum(E[j, k] * X[i, j, k] for k in K for i in DELTA_MINUS[j]) == 1) 
     for j in N
@@ -58,7 +60,8 @@ EndAtDepot = {k:
 
 m.optimize()
 
-
+endTime = time.time()
+print(f"Model solved in {(endTime - startTime):.2f}s")
 
 # Print out results.
 if m.Status != gp.GRB.INFEASIBLE:

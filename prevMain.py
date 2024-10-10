@@ -1,5 +1,6 @@
 import gurobipy as gp
 from util.util import *
+import time
 
 EPS = 1e-10
 
@@ -8,6 +9,9 @@ N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSI
 
 M_0 = 0
 M = 1000
+
+# Lets see how long this takes!
+startTime = time.time()
 
 m = gp.Model("Heterogenous Bus Problem")
 # Variables
@@ -56,11 +60,14 @@ EndAtDepot = {k:
 
 m.optimize()
 
+endTime = time.time()
+print(f"Model solved in {(endTime - startTime):.2f}s")
+
 
 # Print out results.
 if m.Status != gp.GRB.INFEASIBLE:
-    num_busses = len([1 for k in K if len([1 for j in N_FINAL if X[0, j, k].x > 0])> 0 ]  )
-    distancee = sum([P[i] + D[i, j] for (i, j, k) in X if X[i, j, k].x > 0])
+    num_busses = sum(round(X[i,j,k].x) for (i,j,k) in X if i==0)
+    distancee = sum(P[i] + D[i, j] for (i,j,k) in X if round(X[i,j,k].x)==1)
     print("Number of busses: ", num_busses)
     print("Distance: ", distancee)
 else:
