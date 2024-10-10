@@ -1,7 +1,6 @@
 import gurobipy as gp
 from util.util import *
 
-FILE_NUMBER = 5
 EPS = 1e-10
 
 # Sets & Data
@@ -28,8 +27,6 @@ FlowBalance = {(j, k):
     m.addConstr(gp.quicksum(X[i, j, k] for i in DELTA_MINUS[j]) == gp.quicksum(X[j, i, k] 
     for i in DELTA_PLUS[j])) for j in N for k in K
 }
-
-
 
 EnoughTime = {(i, j, k): 
     m.addConstr(W[i, k] + P[i] + D[i, j] - W[j, k] <= (1 - X[i, j, k]) * M )

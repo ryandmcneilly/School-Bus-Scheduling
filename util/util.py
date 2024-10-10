@@ -1,13 +1,14 @@
 import numpy as np
 from enum import IntEnum
 
+FILE_NUMBER = 10
 BUS_SPEED = 60 # km/h
 SCHOOL_START_TIME = 0
 SCHOOL_END_TIME = 1
 EARLY, LATE = 0, 1
 DEPOT_POSITION = (50, 50)
 M_0 = 0
-M = 1 << 32 - 1
+M = 1000
 
 
 class Test(IntEnum):
@@ -47,6 +48,9 @@ def read_file(test_number):
    N_ALL = {0} | N | {len(N) + 1}
 
    # Get Different bus types (by capacity)
+   # unique_bus_types, counts = np.unique(vehicle_file[:, Vehicle.CAPACITY], return_counts=True)
+   # T = {i: bus_type for i, bus_type in enumerate(unique_bus_types, start=1)}
+   # F = {i: freq for i, freq in enumerate(counts, start=1)}
 
    K = set(vehicle_file[:, Vehicle.VEH_ID])
 
@@ -69,7 +73,7 @@ def read_file(test_number):
    SCHOOL_POSITIONS[len(N) + 1] = DEPOT_POSITION
 
    START_POSITIONS = {row[Test.ID]: (row[Test.START_X], row[Test.START_Y]) for row in test_file}
-   START_POSITIONS[len(N) + 1] = (0, 0) # Depot set to origin coordinate for ease.
+   START_POSITIONS[len(N) + 1] = DEPOT_POSITION # Depot set to origin coordinate for ease.
 
    # Time from School i to start of trip j
    D = {(i, j):
