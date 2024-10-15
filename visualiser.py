@@ -12,9 +12,9 @@ for i in N:
 
 for i in N:
     for j in N:
-        for k in N:
-            if X[i, j, k].x > 0:
-                net.add_edge(str(i), str(j), title=f"Bus {k}")
+        for t in T:
+            if X[i, j, t].x > 0:
+                net.add_edge(str(i), str(j), title=f"Bus type {t}")
 
 # net.toggle_physics(False)
 

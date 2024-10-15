@@ -48,15 +48,17 @@ def read_file(test_number):
    N_ALL = {0} | N | {len(N) + 1}
 
    # Get Different bus types (by capacity)
-   # unique_bus_types, counts = np.unique(vehicle_file[:, Vehicle.CAPACITY], return_counts=True)
-   # T = {i: bus_type for i, bus_type in enumerate(unique_bus_types, start=1)}
-   # F = {i: freq for i, freq in enumerate(counts, start=1)}
+   unique_bus_types, counts = np.unique(vehicle_file[:, Vehicle.CAPACITY], return_counts=True)
+   T = range(1, len(unique_bus_types) + 1)
+   NUM = {i: freq for i, freq in enumerate(counts, start=1)}
+   CAP = {i: cap for i, cap in enumerate(unique_bus_types, start=1)}
 
-   K = set(vehicle_file[:, Vehicle.VEH_ID])
+
+   # K = set(vehicle_file[:, Vehicle.VEH_ID])
 
    # Stores if bus k has enough capacity for stop i
-   E = {(i, k): test_file[i - 1][Test.STUDENT_NUM] <= vehicle_file[k - 1][Vehicle.CAPACITY] 
-        for i in N for k in K
+   E = {(i, t): test_file[i - 1][Test.STUDENT_NUM] <= CAP[t]
+        for i in N for t in T
    }
 
    # Time window constraints
@@ -85,4 +87,6 @@ def read_file(test_number):
    DELTA_MINUS = {j: {i for i in N if WINDOW[i][SCHOOL_START_TIME] + D[i, j] + P[i] <= WINDOW[j][SCHOOL_END_TIME]} | {0} for j in N_FINAL }
    DELTA_PLUS = {i: {j for j in N if WINDOW[i][SCHOOL_START_TIME] + D[i, j] + P[i] <= WINDOW[j][SCHOOL_END_TIME]} | {len(N) + 1} for i in N }
    DELTA_PLUS[0] = N_FINAL
-   return N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS
+   return N, N_0, N_FINAL, N_ALL, T, NUM, CAP, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS
+
+read_file(5)
