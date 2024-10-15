@@ -22,6 +22,8 @@ W = {(i, k): m.addVar() for i in N_0 for k in K}                                
 m.setObjective(gp.quicksum(((P[i] if i > 0 else 0) + D[i, j]) * X[i, j, k] for i, j, k in X) + M_0 * gp.quicksum(X[0, j, k] for k in K for j in N_FINAL), gp.GRB.MINIMIZE)
 
 # Constraints
+ForceZero = m.addConstr(gp.quicksum(X[i,j,k] for (i,j,k) in X if (j,k) in E and not E[j,k]) ==0)
+
 TripDoneWithValidBus = {j: 
     m.addConstr(gp.quicksum(E[j, k] * X[i, j, k] for k in K for i in DELTA_MINUS[j]) == 1) 
     for j in N
@@ -48,12 +50,13 @@ InTimeWindowMore = {(j, k):
 }
 
 StartAtDepot = {k: 
-    m.addConstr(gp.quicksum(X[0, j, k] for j in N_FINAL) == 1) 
+    m.addConstr(gp.quicksum(X[0, j, k] for j in DELTA_PLUS[0]) <= 1)
     for k in K
 }
 
 EndAtDepot = {k: 
-    m.addConstr(gp.quicksum(X[i, len(N) + 1, k] for i in N_0) == 1) 
+    m.addConstr(gp.quicksum(X[i, len(N) + 1, k] for i in DELTA_MINUS[len(N) + 1]) == 
+                gp.quicksum(X[0, j, k] for j in DELTA_PLUS[0])) # 
     for k in K
 }
 
