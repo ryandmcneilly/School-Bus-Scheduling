@@ -57,8 +57,8 @@ def read_file(test_number):
    # K = set(vehicle_file[:, Vehicle.VEH_ID])
 
    # Stores if bus k has enough capacity for stop i
-   E = {(i, t): test_file[i - 1][Test.STUDENT_NUM] <= CAP[t]
-        for i in N for t in T
+   E = {(i, t): test_file[i - 1][Test.STUDENT_NUM] <= CAP[t] if i not in [0, len(N) + 1] else True
+        for i in N_ALL for t in T
    }
 
    # Time window constraints
@@ -85,8 +85,10 @@ def read_file(test_number):
 
    # trip j can be preceded by trip i if 
    DELTA_MINUS = {j: {i for i in N if WINDOW[i][SCHOOL_START_TIME] + D[i, j] + P[i] <= WINDOW[j][SCHOOL_END_TIME]} | {0} for j in N_FINAL }
+   DELTA_MINUS[len(N) + 1] = N_0
    DELTA_PLUS = {i: {j for j in N if WINDOW[i][SCHOOL_START_TIME] + D[i, j] + P[i] <= WINDOW[j][SCHOOL_END_TIME]} | {len(N) + 1} for i in N }
    DELTA_PLUS[0] = N_FINAL
+   DELTA_PLUS[len(N) + 1] = {}
    return N, N_0, N_FINAL, N_ALL, T, NUM, CAP, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS
 
 read_file(5)
