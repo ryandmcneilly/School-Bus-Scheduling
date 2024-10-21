@@ -3,6 +3,9 @@ from util.util import *
 import time
 EPS = 1e-3
 
+# For testing
+from test import FILE_NUMBER
+
 # Sets & Data
 N, N_0, N_FINAL, N_ALL, T, NUM, CAP, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS = read_file(FILE_NUMBER)
 
@@ -58,6 +61,7 @@ EndAtDepot = {t:
     for t in T
 }
 
+m.setParam('OutputFlag', 0)
 m.optimize()
 
 endTime = time.time()

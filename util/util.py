@@ -88,5 +88,3 @@ def read_file(test_number):
    DELTA_PLUS = {i: {j for j in N if WINDOW[i][SCHOOL_START_TIME] + D[i, j] + P[i] <= WINDOW[j][SCHOOL_END_TIME]} | {len(N) + 1} for i in N }
    DELTA_PLUS[0] = N_FINAL
    return N, N_0, N_FINAL, N_ALL, T, NUM, CAP, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS
-
-read_file(5)
