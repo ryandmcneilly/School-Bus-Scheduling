@@ -4,7 +4,10 @@ import time
 EPS = 1e-3
 
 # For testing
-from test import FILE_NUMBER
+TESTING = 0
+if TESTING:
+    from test import FILE_NUMBER
+
 
 # Sets & Data
 N, N_0, N_FINAL, N_ALL, T, NUM, CAP, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS = read_file(FILE_NUMBER)
@@ -69,10 +72,6 @@ print(f"Model solved in {(endTime - startTime):.2f}s")
 
 # Print out results.
 if m.Status != gp.GRB.INFEASIBLE:
-    # num_busses = sum(round(X[i,j,k].x) for (i,j,k) in X if i==0)
-    # distancee = sum(P[i] + D[i, j] for (i,j,k) in X if round(X[i,j,k].x)==1)
-    # print("Number of busses: ", num_busses)
-    # print("Distance: ", distancee)
     pass
 else:
     m.computeIIS()
