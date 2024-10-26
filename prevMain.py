@@ -3,12 +3,15 @@ from util.util import *
 import time
 
 EPS = 1e-10
+TESTING = 1
+if TESTING:
+    from test import FILE_NUMBER
 
 # Sets & Data
-N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS = read_file(FILE_NUMBER)
+N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS = read_file(FILE_NUMBER, prev=True)
 
-M_0 = 0
-M = 1000
+M_0 = sum(P[i] for i in N) + sum(D[i, j] for i in N for j in N)
+M = M_0 + 1
 
 # Lets see how long this takes!
 startTime = time.time()
@@ -19,7 +22,7 @@ X = {(i, j, k): m.addVar(vtype=gp.GRB.BINARY) for i in N_0 for j in N_FINAL for 
 W = {(i, k): m.addVar() for i in N_0 for k in K}                                            # Service start time for bus k
 
 # Objective
-m.setObjective(gp.quicksum(((P[i] if i > 0 else 0) + D[i, j]) * X[i, j, k] for i, j, k in X) + M_0 * gp.quicksum(X[0, j, k] for k in K for j in N_FINAL), gp.GRB.MINIMIZE)
+m.setObjective(gp.quicksum(((P[i] if i > 0 else 0) + D[i, j]) * X[i, j, k] for i, j, k in X), gp.GRB.MINIMIZE)
 
 # Constraints
 ForceZero = m.addConstr(gp.quicksum(X[i,j,k] for (i,j,k) in X if (j,k) in E and not E[j,k]) ==0)
@@ -61,18 +64,21 @@ EndAtDepot = {k:
 }
 
 
+if TESTING:
+    m.setParam('OutputFlag', 0)
 m.optimize()
 
-endTime = time.time()
-print(f"Model solved in {(endTime - startTime):.2f}s")
 
 
 # Print out results.
 if m.Status != gp.GRB.INFEASIBLE:
     num_busses = sum(round(X[i,j,k].x) for (i,j,k) in X if i==0)
     distancee = sum(P[i] + D[i, j] for (i,j,k) in X if round(X[i,j,k].x)==1)
-    print("Number of busses: ", num_busses)
-    print("Distance: ", distancee)
+    # print("Number of busses: ", num_busses)
+    # print("Distance: ", distancee)
+    endTime = time.time()
+    print(f"Model solved in {(endTime - startTime):.2f}s using {num_busses} busses with {distancee:.1f}")
+
 else:
     m.computeIIS()
     m.write("iismodel.ilp")

@@ -4,13 +4,14 @@ import time
 EPS = 1e-3
 
 # For testing
-TESTING = 0
+TESTING = 1
 if TESTING:
     from test import FILE_NUMBER
 
 
 # Sets & Data
 N, N_0, N_FINAL, N_ALL, T, NUM, CAP, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS = read_file(FILE_NUMBER)
+M_0 = sum(P[i] for i in N) + sum(D[i, j] for i in N for j in N)
 
 # Lets see how long this takes!
 startTime = time.time()
@@ -18,11 +19,11 @@ startTime = time.time()
 m = gp.Model("Heterogenous Bus Problem")
 
 # Variables
-X = {(i, j, t): m.addVar() for i in N_0 for j in N_FINAL for t in T}     # Bool to do trip
+X = {(i, j, t): m.addVar(vtype=gp.GRB.INTEGER) for i in N_0 for j in N_FINAL for t in T}     # Bool to do trip
 Z = {(i, j, mode): m.addVar() for i in N_0 for j in N_FINAL for mode in (EARLY, LATE)}      # Bounding variable times
 
 # Objective
-m.setObjective(gp.quicksum((P[i] + D[i, j]) * X[i, j, t] for i in N_0 for j in N_FINAL for t in T) + M_0 * gp.quicksum(X[0, j, t] for t in T for j in N_FINAL), gp.GRB.MINIMIZE)
+m.setObjective(gp.quicksum((P[i] + D[i, j]) * X[i, j, t] for i in N_0 for j in N_FINAL for t in T) + M_0 * gp.quicksum(X[0, j, t] for t in T for j in N_FINAL))
 
 # Constraints
 ForceZero = m.addConstr(gp.quicksum(X[i,j,t] for (i,j,t) in X if (j,t) in E and not E[j,t]) ==0)
@@ -40,7 +41,7 @@ FlowBalance = {(j, t):
 TimeWindowBound = {(i): m.addConstr(
     gp.quicksum(
         Z[i, j, EARLY] * WINDOW[i][SCHOOL_START_TIME] + 
-        Z[i, j, LATE] * (WINDOW[j][SCHOOL_END_TIME] - P[i] - D[i, j]) for j in N_FINAL # this was the problem
+        Z[i, j, LATE] * (WINDOW[j][SCHOOL_END_TIME] - P[j] - D[i, j]) for j in N_FINAL # this was the problem
     ) >= gp.quicksum(
         Z[j, i, EARLY] * (WINDOW[j][SCHOOL_START_TIME] + P[j] + D[j, i]) + 
         Z[j, i, LATE] * (WINDOW[i][SCHOOL_END_TIME] ) for j in N))
@@ -64,15 +65,18 @@ EndAtDepot = {t:
     for t in T
 }
 
-m.setParam('OutputFlag', 0)
+if TESTING:
+    m.setParam('OutputFlag', 0)
 m.optimize()
 
 endTime = time.time()
-print(f"Model solved in {(endTime - startTime):.2f}s")
+
 
 # Print out results.
 if m.Status != gp.GRB.INFEASIBLE:
-    pass
+    num_busses = sum(round(X[i,j,k].x) for (i,j,k) in X if i==0)
+    distancee = sum(P[i] + D[i, j] for (i,j,k) in X if round(X[i,j,k].x)==1)
+    print(f"Model solved in {(endTime - startTime):.2f}s using {num_busses} busses with {distancee:.1f}")
 else:
     m.computeIIS()
     m.write("iismodel.ilp")

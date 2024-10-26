@@ -1,7 +1,7 @@
 import numpy as np
 from enum import IntEnum
 
-FILE_NUMBER = 10
+FILE_NUMBER = 5
 BUS_SPEED = 60 # km/h
 SCHOOL_START_TIME = 0
 SCHOOL_END_TIME = 1
@@ -34,7 +34,7 @@ def distance(pos1, pos2):
    return int(np.linalg.norm(np.array((pos1[0] - pos2[0], pos1[1] - pos2[1])))) / BUS_SPEED
 
 # Read csv
-def read_file(test_number):
+def read_file(test_number, prev=False):
    test_filename = f"./datasets/hetero_test_file{test_number}.txt"
    vehicle_filename = f"./datasets/hetero_vehicle_file{test_number}.txt"
 
@@ -53,13 +53,18 @@ def read_file(test_number):
    NUM = {i: freq for i, freq in enumerate(counts, start=1)}
    CAP = {i: cap for i, cap in enumerate(unique_bus_types, start=1)}
 
-
-   # K = set(vehicle_file[:, Vehicle.VEH_ID])
+   if prev:
+      K = set(vehicle_file[:, Vehicle.VEH_ID])
 
    # Stores if bus k has enough capacity for stop i
-   E = {(i, t): test_file[i - 1][Test.STUDENT_NUM] <= CAP[t]
-        for i in N for t in T
-   }
+   if prev:
+      E = {(i, k): test_file[i - 1][Test.STUDENT_NUM] <= vehicle_file[k - 1][Vehicle.CAPACITY] 
+         for i in N for k in K
+      }
+   else:
+      E = {(i, t): test_file[i - 1][Test.STUDENT_NUM] <= CAP[t]
+         for i in N for t in T
+      }
 
    # Time window constraints
    P = {row[Test.ID]: row[Test.SERVICE_DURATION] for row in test_file}
@@ -87,4 +92,11 @@ def read_file(test_number):
    DELTA_MINUS = {j: {i for i in N if WINDOW[i][SCHOOL_START_TIME] + D[i, j] + P[i] <= WINDOW[j][SCHOOL_END_TIME]} | {0} for j in N_FINAL }
    DELTA_PLUS = {i: {j for j in N if WINDOW[i][SCHOOL_START_TIME] + D[i, j] + P[i] <= WINDOW[j][SCHOOL_END_TIME]} | {len(N) + 1} for i in N }
    DELTA_PLUS[0] = N_FINAL
+   # print("num", NUM)
+   # print("cap", CAP)
+   # print(T)
+   if prev:
+      return N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS
    return N, N_0, N_FINAL, N_ALL, T, NUM, CAP, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS
+
+# read_file(100)
