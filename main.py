@@ -3,16 +3,22 @@ from util.util import *
 import time
 EPS = 1e-3
 
+
+TESTING = 1
+if TESTING:
+    from test import FILE_NUMBER
+
 # Sets & Data
 N, N_0, N_FINAL, N_ALL, K, E, P, D, DELTA_MINUS, DELTA_PLUS, WINDOW, SCHOOL_POSITIONS = read_file(FILE_NUMBER)
 
 # Lets see how long this takes!
 startTime = time.time()
 
+
 m = gp.Model("Heterogenous Bus Problem")
 
 # Variables
-X = {(i, j, k): m.addVar() for i in N_0 for j in N_FINAL for k in K}     # Bool to do trip
+X = {(i, j, k): m.addVar(vtype=gp.GRB.BINARY) for i in N_0 for j in N_FINAL for k in K}     # Bool to do trip
 Z = {(i, j, mode): m.addVar() for i in N_0 for j in N_FINAL for mode in (EARLY, LATE)}      # Bounding variable times
 
 # Objective
@@ -58,17 +64,18 @@ EndAtDepot = {k:
     for k in K
 }
 
+if TESTING:
+    m.setParam('OutputFlag', 0)
 m.optimize()
 
+
 endTime = time.time()
-print(f"Model solved in {(endTime - startTime):.2f}s")
 
 # Print out results.
 if m.Status != gp.GRB.INFEASIBLE:
     num_busses = sum(round(X[i,j,k].x) for (i,j,k) in X if i==0)
     distancee = sum(P[i] + D[i, j] for (i,j,k) in X if round(X[i,j,k].x)==1)
-    print("Number of busses: ", num_busses)
-    print("Distance: ", distancee)
+    print(f"Model solved in {(endTime - startTime):.2f}s using {num_busses} busses with {distancee:.1f}")
 else:
     m.computeIIS()
     m.write("iismodel.ilp")
