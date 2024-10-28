@@ -4,7 +4,7 @@ import time
 EPS = 1e-3
 
 # For testing
-TESTING = 1
+TESTING = 0
 if TESTING:
     from test import FILE_NUMBER
 
